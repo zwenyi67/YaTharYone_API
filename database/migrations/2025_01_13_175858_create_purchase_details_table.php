@@ -16,7 +16,7 @@ return new class extends Migration
             $table->unsignedBigInteger('purchase_id');
             $table->unsignedBigInteger('item_id');
             $table->decimal('quantity', 10, 2);
-            $table->decimal('unit_cost', 10, 2);
+            $table->decimal('total_cost', 10, 2);
             $table->timestamps();
             $table->boolean('active_flag')->default(true);
             $table->foreign('purchase_id')->references('id')->on('purchases')->onDelete('cascade');

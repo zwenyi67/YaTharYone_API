@@ -15,4 +15,18 @@ class Menu extends Model
     {
         return $this->belongsTo(MenuCategory::class, 'category_id');
     }
+
+    public function addonItems()
+    {
+        return $this->belongsToMany(InventoryItem::class, 'menu_addon_items')
+                    ->withPivot(['quantity','additional_price'])
+                    ->withTimestamps();
+    }
+
+    public function inventoryItems()
+    {
+        return $this->belongsToMany(InventoryItem::class, 'menu_inventory_items')
+                    ->withPivot('quantity')
+                    ->withTimestamps();
+    }
 }

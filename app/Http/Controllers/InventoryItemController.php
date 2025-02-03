@@ -10,7 +10,7 @@ class InventoryItemController extends Controller
 {
     public function index()
     {
-        $items = InventoryItem::where('active_flag', 1)->latest()->get();
+        $items = InventoryItem::where('active_flag', 1)->with(['inventoryItemCategory:id,name'])->latest()->get();
 
         $response = new ResponseModel(
             'success',
@@ -32,8 +32,7 @@ class InventoryItemController extends Controller
                 'reorder_level' => 'required',
                 'min_stock_level' => 'required',
                 'item_category_id' => 'required',
-                'expiry_date' => 'required',
-                'is_perishable' => 'nullable',
+                'expiry_period_inDay' => 'required',
                 'description' => 'nullable'
             ]);
 
@@ -45,8 +44,7 @@ class InventoryItemController extends Controller
                 'reorder_level' => $data['reorder_level'],
                 'min_stock_level' => $data['min_stock_level'],
                 'item_category_id' => $data['item_category_id'],
-                'expiry_date' => $data['expiry_date'],
-                'is_perishable' => $data['is_perishable'] ?? 0,
+                'expiry_period_inDay' => $data['expiry_period_inDay'],
                 'description' => $data['description'],
                 'createby' => 1
             ]);
@@ -81,8 +79,7 @@ class InventoryItemController extends Controller
                 'reorder_level' => 'required',
                 'min_stock_level' => 'required',
                 'item_category_id' => 'required',
-                'expiry_date' => 'required',
-                'is_perishable' => 'nullable',
+                'expiry_period_inDay' => 'required',
                 'description' => 'nullable'
             ]);
 
@@ -105,8 +102,7 @@ class InventoryItemController extends Controller
                     'reorder_level' => $data['reorder_level'],
                     'min_stock_level' => $data['min_stock_level'],
                     'item_category_id' => $data['item_category_id'],
-                    'expiry_date' => $data['expiry_date'],
-                    'is_perishable' => $data['is_perishable'] ?? 0,
+                    'expiry_period_inDay' => $data['expiry_period_inDay'],
                     'description' => $data['description'],
                     'updateby' => 1
                 ]);

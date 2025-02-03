@@ -12,7 +12,7 @@ class PurchaseController extends Controller
 {
     public function index() 
     {
-        $items = Purchase::where('active_flag', 1)->with(['purchaseDetails.item:id,name', 'supplier:id,name,profile'])->latest()->get();
+        $items = Purchase::where('active_flag', 1)->with(['purchaseDetails.item:id,name,unit_of_measure', 'supplier:id,name,profile'])->latest()->get();
 
         $response = new ResponseModel(
             'success',
@@ -49,7 +49,7 @@ class PurchaseController extends Controller
             'purchase_items' => 'required|array',
             'purchase_items.*.item_id' => 'required|integer', // Validate each item
             'purchase_items.*.quantity' => 'required|integer|min:1', // Quantity must be at least 1
-            'purchase_items.*.unit_cost' => 'required|numeric|min:0',
+            'purchase_items.*.total_cost' => 'required|numeric|min:0',
             'supplier_id' => 'required|integer|exists:suppliers,id',
             'total_amount' => 'required|numeric|min:0',
             'purchase_note' => 'nullable|string'
@@ -68,7 +68,7 @@ class PurchaseController extends Controller
                 'purchase_id' => $purchase->id,
                 'item_id' => $item['item_id'],
                 'quantity' => $item['quantity'],
-                'unit_cost' => $item['unit_cost'],
+                'total_cost' => $item['total_cost'],
                 'createby' => 1,
             ]);
         }

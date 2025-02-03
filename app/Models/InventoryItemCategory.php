@@ -10,4 +10,9 @@ class InventoryItemCategory extends Model
     use HasFactory;
 
     protected $guarded = [];
+
+    public function inventoryItems()
+    {
+        return $this->hasMany(InventoryItem::class, 'item_category_id');
+    }
 }

@@ -11,15 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('recipes', function (Blueprint $table) {
+        Schema::create('menu_addon_items', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('menu_id');
-            $table->unsignedBigInteger('item_id');
-            $table->decimal('quantity', 10, 2); // Quantity needed for one serving
+            $table->unsignedBigInteger('inventory_item_id');
+            $table->decimal('quantity', 10, 2);
+            $table->decimal('additional_price', 10, 2)->nullable();
             $table->timestamps();
             $table->boolean('active_flag')->default(true);
             $table->foreign('menu_id')->references('id')->on('menus')->onDelete('cascade');
-            $table->foreign('item_id')->references('id')->on('inventory_items')->onDelete('cascade');
+            $table->foreign('inventory_item_id')->references('id')->on('inventory_items')->onDelete('cascade');
             $table->unsignedBigInteger('createby');
             $table->unsignedBigInteger('updateby')->nullable();
             $table->foreign('createby')->references('id')->on('admins')->onDelete('cascade');
@@ -32,6 +33,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('recipes');
+        Schema::dropIfExists('menu_addon_items');
     }
 };

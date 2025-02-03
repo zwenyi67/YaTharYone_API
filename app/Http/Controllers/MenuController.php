@@ -6,12 +6,42 @@ use App\Http\Helpers\ResponseModel;
 use App\Models\Menu;
 use App\Models\Recipe;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class MenuController extends Controller
 {
-    public function index() 
+    public function index()
     {
-        $items = Menu::where('active_flag', 1)->with(['category:id,name', ])->latest()->get();
+        $items = Menu::where('active_flag', 1)
+            ->with([
+                'category:id,name',
+                'inventoryItems:id,name,unit_of_measure',
+                'addonItems:id,name,unit_of_measure' // Include addonItems relationship
+            ])
+            ->latest()
+            ->get()
+            ->map(function ($item) {
+                // Process inventory items
+                $item->inventory_items = $item->inventoryItems->map(function ($inventoryItem) {
+                    $inventoryItem->quantity = $inventoryItem->pivot->quantity; // Add pivot quantity
+                    unset($inventoryItem->pivot); // Remove pivot object
+                    return $inventoryItem;
+                });
+
+                // Process addon items
+                $item->addon_items = $item->addonItems->map(function ($addonItem) {
+                    $addonItem->quantity = $addonItem->pivot->quantity; // Add pivot quantity
+                    $addonItem->additional_price = $addonItem->pivot->additional_price; // Add pivot additional_price
+                    unset($addonItem->pivot); // Remove pivot object
+                    return $addonItem;
+                });
+
+                // Remove the original inventoryItems and addonItems keys
+                unset($item->inventoryItems);
+                unset($item->addonItems);
+
+                return $item;
+            });
 
         $response = new ResponseModel(
             'success',
@@ -29,10 +59,10 @@ class MenuController extends Controller
             $data = $request->validate([
                 'profile' => 'image|mimes:jpeg,png,jpg|max:2048',
                 'name' => 'required|string|max:20|min:3|unique:menus,name',
-                'category_id' => 'required',
+                'category_id' => 'required|exists:menu_categories,id',
                 'price' => 'required',
                 'description' => 'nullable',
-                'ingredients' => 'required|string',
+                'ingredients' => 'required|json',
             ]);
 
             $ingredients = json_decode($request->input('ingredients'), true);
@@ -57,14 +87,23 @@ class MenuController extends Controller
             if (!is_array($ingredients)) {
                 return response()->json(['error' => 'Invalid ingredients format'], 400);
             }
-        
-            // Example: Iterate over ingredients and process them
+
+            // To add in pivot table 
             foreach ($ingredients as $ingredient) {
-                Recipe::create([
-                    'menu_id' => $menu->id,
-                    'item_id' => $ingredient['item_id'],
+                // Validate each ingredient's data
+                if (
+                    !isset($ingredient['item_id']) ||
+                    !isset($ingredient['quantity']) ||
+                    !is_numeric($ingredient['quantity']) ||
+                    $ingredient['quantity'] <= 0
+                ) {
+                    return response()->json(['error' => 'Invalid ingredient data provided'], 400);
+                }
+
+                // Use the `attach` method to add data to the pivot table
+                $menu->inventoryItems()->attach($ingredient['item_id'], [
                     'quantity' => $ingredient['quantity'],
-                    'createby' => 1
+                    'createby' => 1,
                 ]);
             }
 
@@ -170,6 +209,60 @@ class MenuController extends Controller
                 'message' => 'Failed to delete Menu: ' . $e->getMessage(),
                 'data' => null
             ], 500);
+        }
+    }
+
+    public function addonItem(Request $request)
+    {
+        try {
+            // Validate the request
+            $data = $request->validate([
+                'menu_id' => 'required|integer|exists:menus,id',
+                'addon_items' => 'required|array|min:1',
+                'addon_items.*.id' => 'required|integer|exists:inventory_items,id',
+                'addon_items.*.quantity' => 'required|numeric|min:1',
+                'addon_items.*.additional_price' => 'required|numeric|min:0',
+                'createby' => 'required|integer',
+            ]);
+
+            // Find the menu
+            $menu = Menu::findOrFail($data['menu_id']);
+
+            // Use a database transaction to ensure atomicity
+            DB::transaction(function () use ($menu, $data) {
+
+                $menu->addonItems()->detach();
+
+                $addonItemsData = [];
+
+                foreach ($data['addon_items'] as $item) {
+                    $addonItemsData[$item['id']] = [
+                        'quantity' => $item['quantity'],
+                        'additional_price' => $item['additional_price'],
+                        'created_at' => now(),
+                        'createby' => 1,
+                    ];
+                }
+
+                // Attach multiple items to the pivot table
+                $menu->addonItems()->syncWithoutDetaching($addonItemsData);
+            });
+
+            // Prepare the response
+            $response = new ResponseModel(
+                'success',
+                0,
+                null
+            );
+
+            return response()->json($response, 200);
+        } catch (\Exception $e) {
+            $response = new ResponseModel(
+                $e->getMessage(),
+                2,
+                null
+            );
+            return response()->json($response, 500);
         }
     }
 }

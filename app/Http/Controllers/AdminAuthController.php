@@ -30,7 +30,7 @@ class AdminAuthController extends Controller
 
         // Create a token for the authenticated admin
 
-        $token = $admin->createToken('main')->plainTextToken;
+        $token = $admin->createToken('admin-token', ['admin'])->plainTextToken;
         //$token = '3930933';
 
         $response = new ResponseModel(

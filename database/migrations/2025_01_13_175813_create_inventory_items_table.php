@@ -20,8 +20,7 @@ return new class extends Migration
             $table->decimal('reorder_level', 10, 2);
             $table->decimal('min_stock_level', 10, 2)->default(0);
             $table->enum('status', ['active', 'inactive'])->default('active');
-            $table->boolean('is_perishable')->default(true);
-            $table->date('expiry_date')->nullable();
+            $table->decimal('expiry_period_inDay', 10, 2)->nullable();
             $table->unsignedBigInteger('item_category_id');
             $table->timestamps();
             $table->boolean('active_flag')->default(true);

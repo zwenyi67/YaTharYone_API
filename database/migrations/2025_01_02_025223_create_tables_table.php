@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('table_no', 10)->unique();
             $table->integer('capacity');
-            $table->boolean('is_occupied')->default(false);
+            $table->enum('status', ['available', 'occupied', 'reservation', 'outofservice'])->default('available');
             $table->boolean('active_flag')->default(true);
             $table->timestamps();
             $table->unsignedBigInteger('createby');
