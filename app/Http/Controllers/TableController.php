@@ -21,6 +21,44 @@ class TableController extends Controller
         return response()->json($response, 200);
     }
 
+    public function tableList()
+    {
+        $tables = Table::where('active_flag', 1)
+            ->with([
+                'orders' => function ($query) {
+                    $query->where('status', '!=', 'completed'); // Fetch only non-completed orders
+                }
+            ])
+            ->latest()
+            ->get();
+
+        $response = new ResponseModel(
+            'success',
+            0,
+            $tables
+        );
+
+        return response()->json($response, 200);
+    }
+
+    public function currentTableList()
+    {
+        $tables = Table::whereHas('orders', function ($query) {
+            $query->where('waiter_id', auth()->id())
+                  ->where('status', '!=', 'completed');
+        })->with('orders')->get();
+        
+
+        $response = new ResponseModel(
+            'success',
+            0,
+            $tables
+        );
+
+        return response()->json($response, 200);
+    }
+
+
     public function store(Request $request)
     {
         try {

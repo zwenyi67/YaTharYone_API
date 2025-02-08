@@ -7,6 +7,7 @@ use App\Http\Controllers\InventoryItemController;
 use App\Http\Controllers\ItemCategoryController;
 use App\Http\Controllers\MenuCategoryController;
 use App\Http\Controllers\MenuController;
+use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SupplierController;
@@ -132,15 +133,39 @@ use Illuminate\Support\Facades\Route;
         Route::post('/admin/tables/{id}/delete', [TableController::class, 'delete']);
 
         // Admin TableManagement End
+
+        // Admin OrderManagement Start
+
+        Route::get('/admin/orders', [OrderController::class, 'index']);
+
+        // Admin OrderManagement End
     });
 
     Route::middleware(['auth:sanctum', 'user'])->group(function () {
 
-        Route::get('/waiter/tables', [TableController::class, 'index']);
+        // Waiter Route Start
+
+        Route::get('/waiter/tableList', [TableController::class, 'tableList']);
+
+        Route::get('/waiter/currentTableList', [TableController::class, 'currentTableList']);
 
         Route::get('/waiter/menus', [MenuController::class, 'index']);
 
         Route::get('/waiter/menu-categories', [MenuCategoryController::class, 'index']);
+
+        Route::post('/waiter/orders/proceedOrder', [OrderController::class, 'proceedOrder']);
+
+        Route::get('/waiter/orders/getOrderById', [OrderController::class, 'getOrderById']);
+
+        // Waiter Route End
+
+        // Chef Route Start
+
+        Route::get('/chef/currentOrderList', [OrderController::class, 'currentOrderList']);
+
+
+
+
 
 
     });

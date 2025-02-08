@@ -16,6 +16,10 @@ class Menu extends Model
         return $this->belongsTo(MenuCategory::class, 'category_id');
     }
 
+    public function orderDetails() {
+        return $this->hasMany(OrderDetail::class);
+    }
+
     public function addonItems()
     {
         return $this->belongsToMany(InventoryItem::class, 'menu_addon_items')

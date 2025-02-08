@@ -47,4 +47,8 @@ class User extends Authenticatable
     {
         return $this->hasOne(EmployeeInfo::class, 'id', 'employeeInfo_id');
     }
+
+    public function ordersAsWaiter() {
+        return $this->hasMany(Order::class, 'waiter_id');
+    }
 }
