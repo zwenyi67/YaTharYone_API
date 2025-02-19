@@ -13,7 +13,7 @@ class OrderController extends Controller
 
     public function index()
     {
-        $tables = Order::with(['orderDetails.menu','table:id,table_no','waiter:id,username'])->latest()->get();
+        $tables = Order::with(['orderDetails.menu', 'table:id,table_no', 'waiter:id,username'])->latest()->get();
 
         $response = new ResponseModel(
             'success',
@@ -31,7 +31,7 @@ class OrderController extends Controller
         ]);
 
         $orderId = $validated['orderId'];
-        $tables = Order::where('id', $orderId)->with(['orderDetails.menu:id,name,price,status'])->latest()->get();
+        $tables = Order::where('id', $orderId)->with(['orderDetails.menu:id,name,price,status', 'table:id,table_no', 'payment'])->latest()->get();
 
         $response = new ResponseModel(
             'success',
@@ -40,11 +40,17 @@ class OrderController extends Controller
         );
 
         return response()->json($response, 200);
-    } 
+    }
 
-    public function currentOrderList()
+    public function readyOrderList()
     {
-        $orders = Order::where('status', '!=' ,'completed')->with('orderDetails.menu','table:id,table_no')->latest()->get();
+        $orders = Order::where('waiter_id', auth()->id())
+            ->whereHas('orderDetails', function ($query) {
+                $query->where('status', '!=', 'served');
+            })
+            ->with(['orderDetails.menu'])
+            ->latest()
+            ->get();
 
         $response = new ResponseModel(
             'success',
@@ -55,7 +61,154 @@ class OrderController extends Controller
         return response()->json($response, 200);
     }
 
-    public function proceedOrder(Request $request) {
+
+
+    public function currentOrderList()
+    {
+        $orders = Order::where('status', '!=', 'completed')->where('status', '!=', 'served')->with('orderDetails.menu', 'table:id,table_no')->latest()->get();
+
+        $response = new ResponseModel(
+            'success',
+            0,
+            $orders
+        );
+
+        return response()->json($response, 200);
+    }
+
+    public function serveOrder(Request $request)
+    {
+        $data = $request->validate([
+            'order_id' => 'required|integer|exists:orders,id',
+            'orderDetail_id' => 'required|integer|exists:order_details,id',
+            'quantity' => 'required|integer|min:1',
+            'status' => 'required|string',
+        ]);
+
+        $order = Order::findOrFail($data['order_id']);
+        $orderDetail = OrderDetail::findOrFail($data['orderDetail_id']);
+
+        if ($data['status'] === 'ready') {
+
+            // Mark order detail as 'ready'
+            $orderDetail->update(['status' => 'served']);
+
+            // Step 1: Get the related menu item
+            $menu = $orderDetail->menu;
+
+            if ($menu) {
+                // Step 2: Get inventory items linked to this menu via pivot table
+                $inventoryItems = $menu->inventoryItems;
+
+                foreach ($inventoryItems as $inventoryItem) {
+                    // Step 3: Reduce stock based on pivot quantity
+                    $pivotData = $inventoryItem->pivot;
+
+                    if ($pivotData) {
+                        $inventoryItem->update([
+                            'current_stock' => max(0, $inventoryItem->current_stock - ($pivotData->quantity * $orderDetail->quantity))
+                        ]);
+                    }
+                }
+            }
+
+            // Step 4: Check if all order details are 'ready'
+            $allReady = $order->orderDetails()->where('status', '!=', 'served')->count() === 0;
+
+            if ($allReady) {
+                $order->update(['status' => 'served']);
+            }
+        }
+
+        return response()->json(new ResponseModel('success', 0, null), 200);
+    }
+
+    public function startPreparing(Request $request)
+    {
+        $data = $request->validate([
+            'order_id' => 'required|integer|exists:orders,id',
+            'orderDetail_id' => 'required|integer|exists:order_details,id',
+            'quantity' => 'integer',
+            'status' => 'required',
+        ]);
+
+        $order = Order::findOrFail($data['order_id']);
+        $orderDetail = OrderDetail::findOrFail($data['orderDetail_id']);
+
+        if ($data['status'] == 'pending') {
+            $order->update([
+                'status' => 'preparing'
+            ]);
+
+            $orderDetail->update([
+                'status' => 'preparing'
+            ]);
+        }
+
+        $response = new ResponseModel(
+            'success',
+            0,
+            null
+        );
+        return response()->json($response, 200);
+    }
+
+    public function markAsReady(Request $request)
+    {
+        $data = $request->validate([
+            'order_id' => 'required|integer|exists:orders,id',
+            'orderDetail_id' => 'required|integer|exists:order_details,id',
+            'quantity' => 'required|integer|min:1',
+            'status' => 'required|string',
+        ]);
+
+        $order = Order::findOrFail($data['order_id']);
+        $orderDetail = OrderDetail::findOrFail($data['orderDetail_id']);
+
+        if ($data['status'] === 'preparing') {
+
+            // Mark order detail as 'ready'
+            $orderDetail->update(['status' => 'ready']);
+
+            // Step 1: Get the related menu item
+            $menu = $orderDetail->menu;
+
+            if ($menu) {
+                // Step 2: Get inventory items linked to this menu via pivot table
+                $inventoryItems = $menu->inventoryItems;
+
+                foreach ($inventoryItems as $inventoryItem) {
+                    // Step 3: Reduce stock based on pivot quantity
+                    $pivotData = $inventoryItem->pivot;
+
+                    if ($pivotData) {
+                        $inventoryItem->update([
+                            'current_stock' => max(0, $inventoryItem->current_stock - ($pivotData->quantity * $orderDetail->quantity))
+                        ]);
+                    }
+                }
+            }
+
+            // Step 4: Check statuses of all order details
+            $allOrderDetails = $order->orderDetails()->pluck('status')->toArray();
+
+            if (in_array('pending', $allOrderDetails) || in_array('preparing', $allOrderDetails)) {
+                // If any item is still pending or preparing, do not change order status
+            } elseif (count(array_unique($allOrderDetails)) === 1 && $allOrderDetails[0] === 'served') {
+                // If all items are served, update order status to 'served'
+                $order->update(['status' => 'served']);
+            } else {
+                // If all items are at least 'ready' (but not all 'served'), set order status to 'ready'
+                $order->update(['status' => 'ready']);
+            }
+        }
+
+        return response()->json(new ResponseModel('success', 0, null), 200);
+    }
+
+
+    public function proceedOrder(Request $request)
+    {
         $data = $request->validate([
             'order_list' => 'required|array',
             'order_list.*.id' => 'required|integer|exists:menus,id',
@@ -67,7 +220,7 @@ class OrderController extends Controller
             'order_id' => 'required',
         ]);
 
-        if($data['order_id'] === 'null') {
+        if ($data['order_id'] === 'null') {
             $order = Order::create([
                 'order_number' => 'ORD-' . strtoupper(uniqid()),
                 'status' => $data['status'],
@@ -77,8 +230,11 @@ class OrderController extends Controller
             ]);
         } else {
             $order = Order::findOrFail($data['order_id']);
+            $order->update([
+                'status' => 'preparing'
+            ]);
         }
-        
+
 
         foreach ($data['order_list'] as $item) {
             OrderDetail::create([

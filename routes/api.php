@@ -8,6 +8,7 @@ use App\Http\Controllers\ItemCategoryController;
 use App\Http\Controllers\MenuCategoryController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SupplierController;
@@ -145,6 +146,8 @@ use Illuminate\Support\Facades\Route;
 
         // Waiter Route Start
 
+        Route::get('/waiter/orders/readyOrderList', [OrderController::class, 'readyOrderList']);
+
         Route::get('/waiter/tableList', [TableController::class, 'tableList']);
 
         Route::get('/waiter/currentTableList', [TableController::class, 'currentTableList']);
@@ -157,11 +160,20 @@ use Illuminate\Support\Facades\Route;
 
         Route::get('/waiter/orders/getOrderById', [OrderController::class, 'getOrderById']);
 
+        Route::post('/waiter/orders/serveOrder', [OrderController::class, 'serveOrder']);
+
+        Route::post('/waiter/orders/requestBill', [PaymentController::class, 'requestBill']);
+
+
         // Waiter Route End
 
         // Chef Route Start
 
         Route::get('/chef/currentOrderList', [OrderController::class, 'currentOrderList']);
+
+        Route::post('/chef/startPreparing', [OrderController::class, 'startPreparing']);
+
+        Route::post('/chef/markAsReady', [OrderController::class, 'markAsReady']);
 
 
 
