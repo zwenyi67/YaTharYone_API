@@ -51,7 +51,7 @@ class MenuCategoryController extends Controller
                 2,
                 null
             );
-            return response()->json($response, 500);
+            return response()->json($response);
         }
     }
 
@@ -98,7 +98,7 @@ class MenuCategoryController extends Controller
                 2,
                 null
             );
-            return response()->json($response, 500);
+            return response()->json($response);
         }
     }
 
@@ -119,7 +119,7 @@ class MenuCategoryController extends Controller
                 'status' => 1,
                 'message' => 'Failed to delete item: ' . $e->getMessage(),
                 'data' => null
-            ], 500);
+            ]);
         }
     }
 }

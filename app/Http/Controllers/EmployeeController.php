@@ -9,9 +9,13 @@ use Illuminate\Http\Request;
 
 class EmployeeController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $employees = EmployeeInfo::where('active_flag', 1)->latest()->get();
+        $data = $request->validate([
+            'role_id' => 'exists:roles,id',
+        ]);
+
+        $employees = EmployeeInfo::where('active_flag', 1)->where('role_id', $data['role_id'])->latest()->get();
 
         $response = new ResponseModel(
             'success',
@@ -61,7 +65,7 @@ class EmployeeController extends Controller
                 'address' => $data['address'],
                 'role_id' => $data['role_id'],
                 'profile' => $profilePath ? asset('storage/' . $profilePath) : null, // Save public URL path
-                'createby' => 1
+                'createby' => auth()->id()
             ]);
 
             // Hash the password
@@ -73,7 +77,7 @@ class EmployeeController extends Controller
                 'password' => $data['password'],
                 'role_id' => $data['role_id'],
                 'employeeInfo_id' => $employee->id,
-                'createby' => 1
+                'createby' => auth()->id()
             ]);
 
             // Prepare the response
@@ -90,7 +94,7 @@ class EmployeeController extends Controller
                 2,
                 null
             );
-            return response()->json($response, 500);
+            return response()->json($response);
         }
     }
 
@@ -136,7 +140,7 @@ class EmployeeController extends Controller
                 'date_hired' => $data['date_hired'],
                 'address' => $data['address'],
                 'role_id' => $data['role_id'],
-                'updateby' => 1
+                'updateby' => auth()->id()
             ]);
 
             // Find or create user record
@@ -147,7 +151,7 @@ class EmployeeController extends Controller
             }
             $user->role_id = $data['role_id'];
             $user->employeeInfo_id = $employee->id;
-            $user->updateby = 1;
+            $user->updateby = auth()->id();
             $user->save();
 
             // Prepare the response
@@ -164,7 +168,7 @@ class EmployeeController extends Controller
                 2,
                 null
             );
-            return response()->json($response, 500);
+            return response()->json($response);
         }
     }
 
@@ -187,7 +191,7 @@ class EmployeeController extends Controller
                 'status' => 1,
                 'message' => 'Failed to delete employee: ' . $e->getMessage(),
                 'data' => null
-            ], 500);
+            ]);
         }
     }
 }

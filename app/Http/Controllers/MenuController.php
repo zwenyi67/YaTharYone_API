@@ -121,7 +121,7 @@ class MenuController extends Controller
                 2,
                 null
             );
-            return response()->json($response, 500);
+            return response()->json($response);
         }
     }
 
@@ -187,7 +187,7 @@ class MenuController extends Controller
                 2,
                 null
             );
-            return response()->json($response, 500);
+            return response()->json($response);
         }
     }
 
@@ -208,7 +208,7 @@ class MenuController extends Controller
                 'status' => 1,
                 'message' => 'Failed to delete Menu: ' . $e->getMessage(),
                 'data' => null
-            ], 500);
+            ]);
         }
     }
 
@@ -262,7 +262,7 @@ class MenuController extends Controller
                 2,
                 null
             );
-            return response()->json($response, 500);
+            return response()->json($response);
         }
     }
 }

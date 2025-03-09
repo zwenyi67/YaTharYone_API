@@ -46,7 +46,7 @@ class InventoryItemController extends Controller
                 'item_category_id' => $data['item_category_id'],
                 'expiry_period_inDay' => $data['expiry_period_inDay'],
                 'description' => $data['description'],
-                'createby' => 1
+                'createby' => auth()->id()
             ]);
 
             // Prepare the response
@@ -63,7 +63,7 @@ class InventoryItemController extends Controller
                 2,
                 null
             );
-            return response()->json($response, 500);
+            return response()->json($response);
         }
     }
 
@@ -104,7 +104,7 @@ class InventoryItemController extends Controller
                     'item_category_id' => $data['item_category_id'],
                     'expiry_period_inDay' => $data['expiry_period_inDay'],
                     'description' => $data['description'],
-                    'updateby' => 1
+                    'updateby' => auth()->id()
                 ]);
 
                 // Prepare the response
@@ -122,7 +122,7 @@ class InventoryItemController extends Controller
                 2,
                 null
             );
-            return response()->json($response, 500);
+            return response()->json($response);
         }
     }
 
@@ -131,6 +131,7 @@ class InventoryItemController extends Controller
         try {
             $item = InventoryItem::findOrFail($id);
             $item->active_flag = 0;
+            $item->updateby = auth()->id();
             $item->update();
 
             return response()->json([
@@ -143,7 +144,29 @@ class InventoryItemController extends Controller
                 'status' => 1,
                 'message' => 'Failed to delete item: ' . $e->getMessage(),
                 'data' => null
-            ], 500);
+            ]);
+        }
+    }
+
+    public function changeStatus($id)
+    {
+        try {
+            $item = InventoryItem::findOrFail($id);
+            $item->status = $item->status == 'active' ? 'inactive' : 'active';
+            $item->updateby = auth()->id();
+            $item->update();
+
+            return response()->json([
+                'status' => 0,
+                'message' => 'Inventory Item Status Changed successfully.',
+                'data' => null
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 1,
+                'message' => 'Failed to delete item: ' . $e->getMessage(),
+                'data' => null
+            ]);
         }
     }
 }

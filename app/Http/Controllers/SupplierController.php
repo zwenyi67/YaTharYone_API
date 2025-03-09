@@ -69,7 +69,7 @@ class SupplierController extends Controller
                 2,
                 null
             );
-            return response()->json($response, 500);
+            return response()->json($response);
         }
     }
 
@@ -135,7 +135,7 @@ class SupplierController extends Controller
                 2,
                 null
             );
-            return response()->json($response, 500);
+            return response()->json($response);
         }
     }
 
@@ -156,7 +156,7 @@ class SupplierController extends Controller
                 'status' => 1,
                 'message' => 'Failed to delete supplier: ' . $e->getMessage(),
                 'data' => null
-            ], 500);
+            ]);
         }
     }
 }

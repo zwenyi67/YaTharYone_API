@@ -59,11 +59,13 @@ use Illuminate\Support\Facades\Route;
 
         Route::post('/admin/purchases/edit', [PurchaseController::class, 'update']);
 
-        Route::post('/admin/purchases/{id}/delete', [PurchaseController::class, 'delete']);
+        Route::post('/admin/purchases/{id}/confirm', [PurchaseController::class, 'confirm']);
+
+        Route::post('/admin/purchases/{id}/cancel', [PurchaseController::class, 'cancel']);
 
         Route::get('/admin/purchases/itemListbyCategory', [PurchaseController::class, 'itemListbyCategory']);
 
-        Route::post('/admin/purchases/confirm', [PurchaseController::class, 'confirm']);
+        Route::post('/admin/purchases/requestPurchase', [PurchaseController::class, 'requestPurchase']);
 
         // Admin SupplierManagment End
 
@@ -86,6 +88,8 @@ use Illuminate\Support\Facades\Route;
         Route::post('/admin/item-categories/edit', [ItemCategoryController::class, 'update']);
 
         Route::post('/admin/item-categories/{id}/delete', [ItemCategoryController::class, 'delete']);
+
+        Route::post('/admin/inventories/{id}/changeStatus', [InventoryItemController::class, 'changeStatus']);
 
         // Admin InventoryManagement End
 
@@ -164,7 +168,6 @@ use Illuminate\Support\Facades\Route;
 
         Route::post('/waiter/orders/requestBill', [PaymentController::class, 'requestBill']);
 
-
         // Waiter Route End
 
         // Chef Route Start
@@ -174,6 +177,14 @@ use Illuminate\Support\Facades\Route;
         Route::post('/chef/startPreparing', [OrderController::class, 'startPreparing']);
 
         Route::post('/chef/markAsReady', [OrderController::class, 'markAsReady']);
+
+        // Cashier Route Start
+
+        Route::get('/cashier/paymentOrder', [PaymentController::class, 'paymentOrder']);
+
+        Route::post('/cashier/processPayment', [PaymentController::class, 'processPayment']);
+
+
 
 
 

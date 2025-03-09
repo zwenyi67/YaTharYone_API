@@ -34,7 +34,7 @@ class ItemCategoryController extends Controller
             $item = InventoryItemCategory::create([
                 'name' => $data['name'],
                 'description' => $data['description'],
-                'createby' => 1
+                'createby' => auth()->id()
             ]);
 
             // Prepare the response
@@ -51,7 +51,7 @@ class ItemCategoryController extends Controller
                 2,
                 null
             );
-            return response()->json($response, 500);
+            return response()->json($response);
         }
     }
 
@@ -80,7 +80,7 @@ class ItemCategoryController extends Controller
                 $item->update([
                     'name' => $data['name'],
                     'description' => $data['description'],
-                    'updateby' => 1
+                    'updateby' => auth()->id()
                 ]);
 
                 // Prepare the response
@@ -98,7 +98,7 @@ class ItemCategoryController extends Controller
                 2,
                 null
             );
-            return response()->json($response, 500);
+            return response()->json($response);
         }
     }
 
@@ -119,7 +119,7 @@ class ItemCategoryController extends Controller
                 'status' => 1,
                 'message' => 'Failed to delete item: ' . $e->getMessage(),
                 'data' => null
-            ], 500);
+            ]);
         }
     }
 }

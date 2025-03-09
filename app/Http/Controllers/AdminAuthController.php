@@ -17,7 +17,7 @@ class AdminAuthController extends Controller
         ]);
 
         if (!Auth::guard('admin')->attempt($data)) {
-            $response = new ResponseModel(
+            $response = new ResponseModel(  
                 'Invalid email or password',
                 1,
                 null

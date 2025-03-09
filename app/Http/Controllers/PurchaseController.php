@@ -10,9 +10,13 @@ use Illuminate\Http\Request;
 
 class PurchaseController extends Controller
 {
-    public function index() 
+    public function index(Request $request) 
     {
-        $items = Purchase::where('active_flag', 1)->with(['purchaseDetails.item:id,name,unit_of_measure', 'supplier:id,name,profile'])->latest()->get();
+        $data = $request->validate([
+            'status' => 'string',
+        ]);
+
+        $items = Purchase::where('active_flag', 1)->where('status', $data['status'])->with(['purchaseDetails.item:id,name,unit_of_measure', 'supplier:id,name,profile'])->latest()->get();
 
         $response = new ResponseModel(
             'success',
@@ -27,13 +31,13 @@ class PurchaseController extends Controller
     {
         // Validate the categoryId parameter
         $validated = $request->validate([
-            'categoryId' => 'required|integer|exists:inventory_item_categories,id', // Adjust 'item_categories' to your actual table name
+            'categoryId' => 'required|integer|exists:inventory_item_categories,id',
         ]);
 
         $categoryId = $validated['categoryId'];
 
         // Fetch items belonging to the specified category
-        $items = InventoryItem::where('item_category_id', $categoryId)->get(); // Replace 'Item' with your model name
+        $items = InventoryItem::where('item_category_id', $categoryId)->get(); 
 
         // Return the items as a JSON response
         return response()->json([
@@ -43,7 +47,7 @@ class PurchaseController extends Controller
         ]);
     }
 
-    public function confirm(Request $request)
+    public function requestPurchase(Request $request)
     {
         $data = $request->validate([
             'purchase_items' => 'required|array',
@@ -60,7 +64,7 @@ class PurchaseController extends Controller
             'total_amount' => $data['total_amount'],
             'purchase_note' => $data['purchase_note'] ?? null,
             'supplier_id' => $data['supplier_id'],
-            'createby' => 1,
+            'createby' => auth()->id(),
         ]);
 
         foreach ($data['purchase_items'] as $item) {
@@ -69,7 +73,7 @@ class PurchaseController extends Controller
                 'item_id' => $item['item_id'],
                 'quantity' => $item['quantity'],
                 'total_cost' => $item['total_cost'],
-                'createby' => 1,
+                'createby' => auth()->id(),
             ]);
         }
 
@@ -79,5 +83,55 @@ class PurchaseController extends Controller
             null
         );
         return response()->json($response, 200);
+    }
+
+    public function confirm($id)
+    {
+        try {
+            $purchase = Purchase::findOrFail($id);
+            $purchase->status = "completed";
+            $purchase->updateby = auth()->id();
+            $purchase->update();
+
+            foreach($purchase->purchaseDetails as $item) {
+                $inventory = InventoryItem::findOrFail($item->item_id);
+                $inventory->current_stock += $item->quantity;
+                $inventory->updateby = auth()->id();
+                $inventory->update();
+            }
+
+            return response()->json([
+                'status' => 0,
+                'message' => 'Purchase Order Confirmed successfully.',
+                'data' => null
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 1,
+                'message' => 'Failed to delete item: ' . $e->getMessage(),
+                'data' => null
+            ]);
+        }
+    }
+
+    public function cancel($id)
+    {
+        try {
+            $item = Purchase::findOrFail($id);
+            $item->status = "cancelled";
+            $item->update();
+
+            return response()->json([
+                'status' => 0,
+                'message' => 'Purchase Order Cancelled successfully.',
+                'data' => null
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 1,
+                'message' => 'Failed to delete item: ' . $e->getMessage(),
+                'data' => null
+            ]);
+        }
     }
 }
