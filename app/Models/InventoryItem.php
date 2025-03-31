@@ -21,6 +21,10 @@ class InventoryItem extends Model
         return $this->hasMany(PurchaseDetail::class, 'item_id');
     }
 
+    public function wasteItems()
+    {
+        return $this->hasMany(WasteControl::class, 'item_id');
+    }
     public function menus()
     {
         return $this->belongsToMany(Menu::class, 'menu_inventory_items')

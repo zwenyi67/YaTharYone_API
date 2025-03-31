@@ -5,20 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class PurchaseDetail extends Model
+class WasteControl extends Model
 {
     use HasFactory;
 
     protected $guarded = [];
 
-    public function purchase()
-    {
-        return $this->belongsTo(Purchase::class, 'purchase_id');
-    }
-
-    /**
-     * Relationship with InventoryItem.
-     */
     public function item()
     {
         return $this->belongsTo(InventoryItem::class, 'item_id');
@@ -26,11 +18,11 @@ class PurchaseDetail extends Model
 
     public function createdBy()
     {
-        return $this->belongsTo(Admin::class, 'createby');
+        return $this->belongsTo(User::class, 'createby');
     }
 
     public function updatedBy()
     {
-        return $this->belongsTo(Admin::class, 'updateby');
+        return $this->belongsTo(User::class, 'updateby');
     }
 }

@@ -52,7 +52,7 @@ class SupplierController extends Controller
                 'address' => $data['address'],
                 'business_type' => $data['business_type'],
                 'profile' => $profilePath ? asset('storage/' . $profilePath) : null, // Save public URL path
-                'createby' => 1
+                'createby' => auth()->id(),
             ]);
 
             // Prepare the response
@@ -117,7 +117,7 @@ class SupplierController extends Controller
                     'address' => $data['address'],
                     'business_type' => $data['business_type'],
                     'profile' => $profilePath ? asset('storage/' . $profilePath) : $supplier->profile, // Save public URL path
-                    'createby' => 1
+                    'createby' => auth()->id(),
                 ]);
 
                 // Prepare the response
@@ -144,6 +144,7 @@ class SupplierController extends Controller
         try {
             $supplier = Supplier::findOrFail($id);
             $supplier->active_flag = 0;
+            $supplier->updateby = auth()->id();
             $supplier->update();
 
             return response()->json([

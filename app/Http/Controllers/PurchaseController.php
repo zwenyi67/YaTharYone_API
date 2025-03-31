@@ -37,7 +37,7 @@ class PurchaseController extends Controller
         $categoryId = $validated['categoryId'];
 
         // Fetch items belonging to the specified category
-        $items = InventoryItem::where('item_category_id', $categoryId)->get(); 
+        $items = InventoryItem::where('active_flag', 1)->where('item_category_id', $categoryId)->get(); 
 
         // Return the items as a JSON response
         return response()->json([

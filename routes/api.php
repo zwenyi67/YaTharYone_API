@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AdminAuthController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EmployeeAuthController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\InventoryItemController;
@@ -40,6 +41,12 @@ use Illuminate\Support\Facades\Route;
         // Admin Role Group
 
         Route::get('/admin/roles', [RoleController::class, 'index']);
+
+        // Admin Dashboard Start
+
+        Route::get('admin/dashboard/overallStaticData', [DashboardController::class, 'overallStaticData']);
+
+        // Admin Dashboard End
 
         // Admin SupplierManagment Start
 
@@ -142,8 +149,16 @@ use Illuminate\Support\Facades\Route;
         // Admin OrderManagement Start
 
         Route::get('/admin/orders', [OrderController::class, 'index']);
+        
 
         // Admin OrderManagement End
+
+         // Admin PaymentManagement Start
+
+         Route::get('/admin/payments', [PaymentController::class, 'index']);
+        
+
+         // Admin PaymentManagement End
     });
 
     Route::middleware(['auth:sanctum', 'user'])->group(function () {

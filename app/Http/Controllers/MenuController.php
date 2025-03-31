@@ -81,7 +81,7 @@ class MenuController extends Controller
                 'price' => $data['price'],
                 'description' => $data['description'],
                 'profile' => $profilePath ? asset('storage/' . $profilePath) : null, // Save public URL path
-                'createby' => 1
+                'createby' => auth()->id(),
             ]);
 
             if (!is_array($ingredients)) {
@@ -103,7 +103,7 @@ class MenuController extends Controller
                 // Use the `attach` method to add data to the pivot table
                 $menu->inventoryItems()->attach($ingredient['item_id'], [
                     'quantity' => $ingredient['quantity'],
-                    'createby' => 1,
+                    'createby' => auth()->id(),
                 ]);
             }
 
@@ -169,7 +169,7 @@ class MenuController extends Controller
                     'address' => $data['address'],
                     'business_type' => $data['business_type'],
                     'profile' => $profilePath ? asset('storage/' . $profilePath) : $menu->profile, // Save public URL path
-                    'createby' => 1
+                    'updateby' => auth()->id(),
                 ]);
 
                 // Prepare the response
@@ -240,7 +240,7 @@ class MenuController extends Controller
                         'quantity' => $item['quantity'],
                         'additional_price' => $item['additional_price'],
                         'created_at' => now(),
-                        'createby' => 1,
+                        'createby' => auth()->id(),
                     ];
                 }
 

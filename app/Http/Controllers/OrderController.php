@@ -11,14 +11,18 @@ use Illuminate\Http\Request;
 class OrderController extends Controller
 {
 
-    public function index()
+    public function index(Request $request)
     {
-        $tables = Order::with(['orderDetails.menu', 'table:id,table_no', 'waiter:id,username'])->latest()->get();
+        $data = $request->validate([
+            'status' => 'string',
+        ]);
+
+        $orders = Order::where('status', $data['status'])->with(['orderDetails.menu', 'table:id,table_no', 'waiter:id,username'])->latest()->get();
 
         $response = new ResponseModel(
             'success',
             0,
-            $tables
+            $orders
         );
 
         return response()->json($response, 200);

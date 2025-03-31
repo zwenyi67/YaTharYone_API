@@ -10,6 +10,23 @@ use Illuminate\Http\Request;
 
 class PaymentController extends Controller
 {
+    public function index(Request $request)
+    {
+        $data = $request->validate([
+            'status' => 'string',
+        ]);
+
+        $payments = Payment::where('payment_status', $data['status'])->with(['order:id,order_number', 'waiter:id,username', 'cashier:id,username'])->latest()->get();
+
+        $response = new ResponseModel(
+            'success',
+            0,
+            $payments
+        );
+
+        return response()->json($response, 200);
+    }
+
     public function requestBill(Request $request)
     {
         $data = $request->validate([
@@ -80,10 +97,12 @@ class PaymentController extends Controller
 
             $order->update([
                 'status' => 'completed',
+                'updateby' => auth()->id(),
             ]);
 
             $table->update([
                 'status' => 'available',
+                'updateby' => auth()->id(),
             ]);
         }
 

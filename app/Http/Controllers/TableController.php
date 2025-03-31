@@ -66,15 +66,13 @@ class TableController extends Controller
             $data = $request->validate([
                 'table_no' => 'required|string|max:20|min:2|unique:tables,table_no',
                 'capacity' => 'required',
-                'status' => 'required'
             ]);
 
             // Create the employee record
             $item = Table::create([
                 'table_no' => $data['table_no'],
                 'capacity' => $data['capacity'],
-                'status' => $data['status'],
-                'createby' => 1
+                'createby' => auth()->id(),
             ]);
 
             // Prepare the response
@@ -103,7 +101,6 @@ class TableController extends Controller
                 'id' => 'required|exists:tables,id',
                 'table_no' => 'required|string|max:20|min:2',
                 'capacity' => 'required',
-                'status' => 'required'
             ]);
 
             $item = Table::findOrFail($data['id']);
@@ -121,8 +118,7 @@ class TableController extends Controller
                 $item->update([
                     'table_no' => $data['table_no'],
                     'capacity' => $data['capacity'],
-                    'status' => $data['status'],
-                    'updateby' => 1
+                    'updateby' => auth()->id(),
                 ]);
 
                 // Prepare the response

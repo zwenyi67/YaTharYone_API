@@ -34,7 +34,7 @@ class MenuCategoryController extends Controller
             $item = MenuCategory::create([
                 'name' => $data['name'],
                 'description' => $data['description'],
-                'createby' => 1
+                'createby' => auth()->id(),
             ]);
 
             // Prepare the response
@@ -80,7 +80,7 @@ class MenuCategoryController extends Controller
                 $item->update([
                     'name' => $data['name'],
                     'description' => $data['description'],
-                    'updateby' => 1
+                    'updateby' => auth()->id(),
                 ]);
 
                 // Prepare the response
