@@ -14,6 +14,7 @@ use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\TableController;
+use App\Http\Controllers\StockAdjustController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -77,6 +78,15 @@ use Illuminate\Support\Facades\Route;
         // Admin SupplierManagment End
 
         // Admin InventoryManagement Start
+
+        // Admin Inventory Group
+        Route::get('/admin/stock-adjust', [StockAdjustController::class, 'index']);
+
+        Route::post('/admin/stock-adjust/create', [StockAdjustController::class, 'store']);
+
+        Route::post('/admin/stock-adjust/edit', [StockAdjustController::class, 'update']);
+
+        Route::post('/admin/stock-adjust/{id}/delete', [StockAdjustController::class, 'delete']);
 
         // Admin Inventory Group
         Route::get('/admin/inventories', [InventoryItemController::class, 'index']);

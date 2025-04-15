@@ -102,7 +102,6 @@ class PaymentController extends Controller
 
             $table->update([
                 'status' => 'available',
-                'updateby' => auth()->id(),
             ]);
         }
 

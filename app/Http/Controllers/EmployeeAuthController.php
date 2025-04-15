@@ -57,7 +57,12 @@ class EmployeeAuthController extends Controller
             [
                 'user' => [
                     'id' => $user->id,
-                    'name' => $user->fullname,
+                    'full_name' => $userInfo->fullname,
+                    'employee_id' => $userInfo->employee_id,
+                    'email' => $userInfo->email,
+                    'profile' => $userInfo->profile,
+                    'role_id' => $user->role_id,
+                    'role_name' => $userInfo->role->name,
                 ],
                 'token' => $token,
                 'role' => $role,

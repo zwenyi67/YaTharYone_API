@@ -46,7 +46,11 @@ class TableController extends Controller
         $tables = Table::whereHas('orders', function ($query) {
             $query->where('waiter_id', auth()->id())
                   ->where('status', '!=', 'completed');
-        })->with('orders')->get();
+        })->with([
+            'orders' => function ($query) {
+                $query->where('status', '!=', 'completed'); // Fetch only non-completed orders
+            }
+        ])->latest()->get();
         
 
         $response = new ResponseModel(

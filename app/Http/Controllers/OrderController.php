@@ -52,9 +52,19 @@ class OrderController extends Controller
             ->whereHas('orderDetails', function ($query) {
                 $query->where('status', '!=', 'served');
             })
-            ->with(['orderDetails.menu'])
+            ->with([
+                'orderDetails:id,order_id,menu_id,quantity,note,status',
+                'orderDetails.menu:id,name',
+                'table:id,table_no'
+            ])
             ->latest()
             ->get();
+
+            $orders->each(function ($order) {
+                $order->orderDetails->each(function ($detail) use ($order) {
+                    $detail->table = $order->table;
+                });
+            });
 
         $response = new ResponseModel(
             'success',

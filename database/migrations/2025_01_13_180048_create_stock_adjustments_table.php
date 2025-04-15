@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('stock_adjustments', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('item_id');
-            $table->decimal('quantity', 10, 2); // Quantity adjusted (negative for wastage)
+            $table->decimal('quantity', 10, 2);
             $table->enum('adjustment_type', ['spoiled', 'waste', 'manual'])->default('manual');
             $table->text('reason')->nullable();
             $table->timestamp('adjustment_date');
